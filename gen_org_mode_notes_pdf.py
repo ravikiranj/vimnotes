@@ -7,11 +7,13 @@ import sys
 import glob
 import subprocess
 import os
+import re
 
 from datetime import datetime, timedelta
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
+org_mode_compile_notes_pattern = re.compile(".*-to-.*\.org")
 
 def valid_date(s):
     try:
@@ -34,11 +36,10 @@ def get_matching_file_list(start_date, end_date):
         return []
 
     file_list = []
-    # Skip our current output file that we are going to write to
-    op_file_basename = get_op_file_basename(start_date, end_date)
     for d in date_list:
         for f in glob.glob("*.org"):
-            if f.startswith(str(d)) and not f.startswith(op_file_basename):
+            # Skip any previous compiled org notes
+            if f.startswith(str(d)) and not org_mode_compile_notes_pattern.match(f):
                 file_list.append(f)
 
     return file_list
