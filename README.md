@@ -23,3 +23,11 @@ Useful vim orgmode scripts
 # Backup org mode files everyday at 12pm
 0 12 * * * PATH_TO_BACKUP_SCRIPT/backup_old_org_files.py 2>&1 | tee -a PATH_TO_BACKUP_SCRIPT/backup.log
 ```
+
+### `create_todays_org_file.py`
+* Use it to create a new org file everyday in the morning
+
+```
+# Create new org mode file every weekday if it doesn't exist
+0 9,11,13,15 * * 1-5 PATH_TO_CREATE_SCRIPT/create_todays_org_file.py 2>&1 | tee -a PATH_TO_CREATE_SCRIPT/org_file_create.log
+```
