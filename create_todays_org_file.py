@@ -17,7 +17,8 @@ logging.basicConfig(
 def main():
     today = datetime.now().date()
     todays_org_file_name = "./" + today.strftime("%Y-%m-%d") + ".org"
-    if os.path.isfile(todays_org_file_name):
+    todays_org_file_name_oncall = "./" + today.strftime("%Y-%m-%d") +"-oncall-notes.org"
+    if os.path.isfile(todays_org_file_name) or os.path.isfile(todays_org_file_name_oncall):
         logger.info("%s already exists, not creating it", todays_org_file_name)
     else:
         logger.info("Creating %s", todays_org_file_name)

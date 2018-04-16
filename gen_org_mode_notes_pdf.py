@@ -65,7 +65,7 @@ def gen_custom_org_file(start_date, end_date):
 
     logger.info("Output written to %s", op_file)
     logger.info("Generating PDF file")
-    status = subprocess.check_output(["emacs", "-nw", "--batch", "--visit=" + op_file_path, "--funcall=org-latex-export-to-pdf"])
+    subprocess.check_output(["emacs", "-nw", "--batch", "--visit=" + op_file_path, "--funcall=org-latex-export-to-pdf"])
     logger.info("PDF written to %s", op_file_basename + ".pdf")
 
 if __name__ == "__main__":
