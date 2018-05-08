@@ -15,16 +15,16 @@ logging.basicConfig(
     level=logging.INFO,
     datefmt="%Y-%m-%d %H:%M:%S")
 
-ORG_REPORT_REGEX = re.compile("(\d{4}-\d{2}-\d{2})-to-(\d{4}-\d{2}-\d{2}).*\.(org|pdf)")
-ORG_REGULAR_REGEX = re.compile("(\d{4}-\d{2}-\d{2}).*\.org")
+NOTE_REPORT_REGEX = re.compile("(\d{4}-\d{2}-\d{2})-to-(\d{4}-\d{2}-\d{2}).*\.(org|pdf|md)")
+NOTE_REGULAR_REGEX = re.compile("(\d{4}-\d{2}-\d{2}).*\.(org|md)")
 BACKUP_THRESHOLD_DAYS = 7
 BACKUP_DIR = "./backup"
 BACKUP_REPORTS_DIR = "./backup/reports"
 
 
-def get_all_org_files():
+def get_all_note_files():
     file_list = []
-    for f in glob.glob("*.org") + glob.glob("*.pdf"):
+    for f in glob.glob("*.org") + glob.glob("*.pdf") + glob.glob("*.md"):
         file_list.append(f)
 
     return file_list
@@ -34,9 +34,9 @@ def valid_date(s):
     return datetime.strptime(s, "%Y-%m-%d").date()
 
 
-def get_org_file_properties(file_name):
+def get_note_file_properties(file_name):
     file_props = {}
-    report_match = ORG_REPORT_REGEX.match(file_name)
+    report_match = NOTE_REPORT_REGEX.match(file_name)
     if report_match is not None:
         file_props["name"] = file_name
         file_props["type"] = "report"
@@ -45,7 +45,7 @@ def get_org_file_properties(file_name):
 
         return file_props
 
-    regular_match = ORG_REGULAR_REGEX.match(file_name)
+    regular_match = NOTE_REGULAR_REGEX.match(file_name)
     if regular_match is not None:
         file_props["name"] = file_name
         file_props["type"] = "regular"
@@ -62,14 +62,14 @@ def get_files_to_backup(file_list):
     backup_threshold_date = today - timedelta(days=BACKUP_THRESHOLD_DAYS)
 
     for f in file_list:
-        file_props = get_org_file_properties(f)
+        file_props = get_note_file_properties(f)
         if file_props is None:
             continue
 
-        org_file_type = file_props["type"]
-        if org_file_type == "report" and file_props["end_date"] < backup_threshold_date:
+        note_file_type = file_props["type"]
+        if note_file_type == "report" and file_props["end_date"] < backup_threshold_date:
             files_to_backup.append(file_props)
-        if org_file_type == "regular" and file_props["date"] < backup_threshold_date:
+        if note_file_type == "regular" and file_props["date"] < backup_threshold_date:
             files_to_backup.append(file_props)
 
     return files_to_backup
@@ -90,13 +90,13 @@ def perform_backup(file_list):
     create_dir_if_not_exists(BACKUP_REPORTS_DIR)
 
     for file_props in file_list:
-        org_file_type = file_props["type"]
+        note_file_type = file_props["type"]
         file_name = file_props["name"]
-        if org_file_type == "report":
-            logger.info("Backing up org report file = %s to %s", str(file_name), BACKUP_REPORTS_DIR)
+        if note_file_type == "report":
+            logger.info("Backing up notes report file = %s to %s", str(file_name), BACKUP_REPORTS_DIR)
             os.rename(file_name, os.path.join(BACKUP_REPORTS_DIR, file_name))
         else:
-            logger.info("Backing up org file = %s to %s", str(file_name), BACKUP_DIR)
+            logger.info("Backing up note file = %s to %s", str(file_name), BACKUP_DIR)
             os.rename(file_name, os.path.join(BACKUP_DIR, file_name))
 
 
@@ -108,7 +108,7 @@ def cleanup_tex_files():
 
 
 def main():
-    file_list = get_all_org_files()
+    file_list = get_all_note_files()
     files_to_backup = get_files_to_backup(file_list)
     perform_backup(files_to_backup)
     cleanup_tex_files()
