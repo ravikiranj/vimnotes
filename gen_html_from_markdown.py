@@ -8,6 +8,7 @@ import os
 import sys
 import traceback
 import codecs
+import re
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -37,7 +38,7 @@ def get_files(convert_all):
     return files
 
 
-def wrap_with_bootstrap_template(fname, html_content):
+def wrap_with_bootstrap_template(fname, html_toc, html_content):
     template = """
 <!doctype html>
 <html lang="en">
@@ -54,11 +55,15 @@ def wrap_with_bootstrap_template(fname, html_content):
   <body>
     <div class="main container-fluid">
     <h1>%s</h1>
+    <div class="toc">
+    <h2>Table of Contents</h2>
     %s
+    </div>
+    <div class="content">%s</div>
     </div>
   </body>
 </html>
-""" % (fname, fname, html_content)
+""" % (fname, fname, html_toc, html_content)
 
     return template
 
@@ -66,7 +71,9 @@ def wrap_with_bootstrap_template(fname, html_content):
 def gen_html(file_path, output_dir):
     fname_with_ext = os.path.basename(file_path)
     fname, file_extension = os.path.splitext(fname_with_ext)
-    html_content = wrap_with_bootstrap_template(fname, markdown2.markdown_path(file_path))
+    link_patterns=[(re.compile(r'((([A-Za-z]{3,9}:(?:\/\/)?)(?:[\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+(:[0-9]+)?|(?:www\.|[\-;:&=\+\$,\w]+@)[A-Za-z0-9\.\-]+)((?:\/[\+~%\/\.\w\-_]*)?\??(?:[\-\+=&;%@\.\w_]*)#?(?:[\.\!\/\\\w]*))?)'),r'\1')]
+    html = markdown2.markdown_path(file_path, extras=["fenced-code-blocks", "tables", "link-patterns", "toc"], link_patterns=link_patterns)
+    html_content = wrap_with_bootstrap_template(fname, html.toc_html, html)
 
     output_path = "%s/%s.html" % (output_dir, fname)
     with codecs.open(output_path, "w", encoding="utf-8") as op:
