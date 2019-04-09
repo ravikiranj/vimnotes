@@ -35,3 +35,8 @@ Useful vim orgmode and markdown notes scripts
 # Create new org mode file every weekday if it doesn't exist
 0 9,11,13,15 * * 1-5 cd PATH_TO_CREATE_NOTES_FILE && PATH_TO_CREATE_SCRIPT/create_todays_notes_file.py 2>&1 | tee -a PATH_TO_CREATE_SCRIPT/notes_file_create.log
 ```
+
+### `gen_html_from_markdown.py`
+* Generates HTML files for the markdown files present in the current folder and places it in `html` folder.
+* If `--all` option is passed to it, it also generates the html files for the markdown files present in `./backup` folder.
+* These can be rsync-ed to any webserver for sharing purposes
