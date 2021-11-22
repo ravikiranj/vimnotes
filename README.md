@@ -1,4 +1,4 @@
-# vimorgmode
+# vimnotes
 Useful vim orgmode and markdown notes scripts
 
 ## Dependencies
