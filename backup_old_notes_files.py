@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import sys
 import traceback
@@ -8,6 +8,7 @@ import glob
 import os
 
 from datetime import datetime, timedelta
+from itertools import chain
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -15,8 +16,8 @@ logging.basicConfig(
     level=logging.INFO,
     datefmt="%Y-%m-%d %H:%M:%S")
 
-NOTE_REPORT_REGEX = re.compile("(\d{4}-\d{2}-\d{2})-to-(\d{4}-\d{2}-\d{2}).*\.(org|pdf|md)")
-NOTE_REGULAR_REGEX = re.compile("(\d{4}-\d{2}-\d{2}).*\.(org|md)")
+NOTE_REPORT_REGEX = re.compile(r"(\d{4}-\d{2}-\d{2})-to-(\d{4}-\d{2}-\d{2}).*\.(org|pdf|md)")
+NOTE_REGULAR_REGEX = re.compile(r"(\d{4}-\d{2}-\d{2}).*\.(org|md)")
 BACKUP_THRESHOLD_DAYS = 7
 BACKUP_DIR = "./backup"
 BACKUP_REPORTS_DIR = "./backup/reports"
@@ -24,7 +25,17 @@ BACKUP_REPORTS_DIR = "./backup/reports"
 
 def get_all_note_files():
     file_list = []
-    for f in glob.glob("*.org") + glob.glob("*.pdf") + glob.glob("*.md"):
+    folders = ["/Users/ravijan/vimnotes/"]
+    file_extensions = ["*.org", "*.pdf", "*.md"]
+    glob_list = []
+
+    for folder in folders:
+        for file_extension in file_extensions:
+            glob_list.append(glob.glob(folder + file_extension))
+
+    flattened_glob_list = list(chain.from_iterable(glob_list))
+
+    for f in flattened_glob_list:
         file_list.append(f)
 
     return file_list
@@ -35,6 +46,7 @@ def valid_date(s):
 
 
 def get_note_file_properties(file_name):
+    file_name = os.path.basename(file_name)
     file_props = {}
     report_match = NOTE_REPORT_REGEX.match(file_name)
     if report_match is not None:
@@ -60,9 +72,11 @@ def get_files_to_backup(file_list):
     files_to_backup = []
     today = datetime.now().date()
     backup_threshold_date = today - timedelta(days=BACKUP_THRESHOLD_DAYS)
+    logger.info("Backup Threshold date = %s", backup_threshold_date)
 
     for f in file_list:
         file_props = get_note_file_properties(f)
+
         if file_props is None:
             continue
 
@@ -109,6 +123,7 @@ def cleanup_tex_files():
 
 def main():
     file_list = get_all_note_files()
+    logger.info(file_list)
     files_to_backup = get_files_to_backup(file_list)
     perform_backup(files_to_backup)
     cleanup_tex_files()
@@ -117,5 +132,5 @@ def main():
 if __name__ == "__main__":
     try:
         main()
-    except Exception as e:
+    except Exception:
         traceback.print_exc(file=sys.stdout)
